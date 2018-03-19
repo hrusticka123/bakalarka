@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Elasticsearch</title>
+  <script src="vue.js"></script>
+  <script src="elasticsearch.js"></script>
+  <script src="elasticsearch.min.js"></script>
+</head>
+<body ng-app="app">
+
+<div id="app">
+    <input v-model="input">
+    <br>
+    <button v-on:click="send">SEARCH</button>
+    <br>
+    {{ message }}
+    <br>
+    <ol>
+        <li v-for="hit in hits">
+            {{ hit._source.sender }}
+        </li>
+    </ol>    
+</div>
+<script>
+
+var client = new elasticsearch.Client({
+    host: 'http://localhost/es/',
+    log: 'trace'
+});
+
+var app = new Vue({
+    el: '#app',
+    data: {
+        message: 'Total found',
+        input: '',
+        hits: []
+    },
+    methods:
+    {
+        send: function ()
+        {
+            client.search({
+            index: 'maildir',
+            body: {
+                query: {
+                    match: {
+                        title: app.input
+                    }
+                }
+            }
+            }).then(function (resp) {
+                var hitscount = resp.hits.total;
+                app.message = hitscount;
+                if (hitscount != 0)
+                    app.hits = resp.hits.hits;
+                else
+                    console.trace('Nothing found');
+            }, function (err) {
+                console.trace(err.message);
+            });
+        }
+    }
+})
+</script>
+</body>
+</html>
