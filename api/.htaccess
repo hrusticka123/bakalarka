@@ -1,0 +1,4 @@
+RewriteEngine On
+Options +FollowSymlinks
+RewriteCond %{REQUEST_URI} !api.php$ [NC]
+RewriteRule ^(.*)$ api.php?$1 [L]
