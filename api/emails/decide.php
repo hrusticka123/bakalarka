@@ -16,11 +16,11 @@ function decide($received)
         savemail($user ,$hash,$received,$tags);
 
         $data = array(
-            "from" => $sentuser ,
-            "to" => $Parser->getHeader("to"),
+            "from" => unaccent($sentuser) ,
+            "to" => unaccent($Parser->getHeader("to")),
             "date" => $Parser->getHeader("date"),
-            "subject" => $Parser->getHeader("subject"),
-            "text" => $Parser->getMessageBody("text"),
+            "subject" => unaccent($Parser->getHeader("subject")),
+            "text" => unaccent($Parser->getMessageBody("text")),
             "messageid" => substr(htmlspecialchars($Parser->getHeader("message-id")),4,-4),
             "tag" => $tags,
             "references" => array()
@@ -61,11 +61,11 @@ function decide($received)
                     savemail($receiveduser,$hash,$received,$tags);
 
                     $data = array(
-                        "from" => $Parser->getHeader("from"),
-                        "to" => $receiveduser,
+                        "from" => unaccent($Parser->getHeader("from")),
+                        "to" => unaccent($receiveduser),
                         "date" => $Parser->getHeader("date"),
-                        "subject" => $Parser->getHeader("subject"),
-                        "text" => $Parser->getMessageBody("text"),
+                        "subject" => unaccent($Parser->getHeader("subject")),
+                        "text" => unaccent($Parser->getMessageBody("text")),
                         "messageid" => substr(htmlspecialchars($Parser->getHeader("message-id")),4,-4),
                         "tag" => $tags,
                         "references" => array()
@@ -110,5 +110,11 @@ function purerefs($references)
         $newrefs[] = preg_replace('/\s+/', '', $part);
     }
     return $newrefs;
+}
+
+function unaccent($string)
+{
+    setlocale(LC_CTYPE, 'en_US.UTF8');
+    return iconv("UTF-8", "ASCII//TRANSLIT", $string);
 }
 ?>

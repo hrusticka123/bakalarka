@@ -12,7 +12,7 @@
 <body>
 
 <div id="emails">
-  <v-app id="inspire">
+  <v-app>
     <v-navigation-drawer
       fixed
       :clipped="$vuetify.breakpoint.mdAndUp"
@@ -151,6 +151,63 @@
     
     <!-- send new email -->
     <new-email ref="newmail"></new-email>
+
+    <!-- set mailer dialog -->
+    <v-dialog v-model="mailerdialog" width="800px">
+        <v-card>
+          <v-card-title
+            class="grey lighten-4 py-4 title">
+            Set Mailer
+          </v-card-title>
+          <v-container grid-list-sm class="pa-4">
+              <v-text-field
+              v-model="mailer"
+              placeholder="Mailer"
+              ></v-text-field>    
+          </v-container>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn flat color="primary" @click="mailerdialog = false">Cancel</v-btn>
+            <v-btn flat @click="mailerdialog = false; setmailer();">Confirm</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <!-- change password dialog -->
+    <v-dialog v-model="passdialog" width="800px">
+        <v-card>
+          <v-card-title
+            class="grey lighten-4 py-4 title">
+            Change Password
+          </v-card-title>
+          <v-container grid-list-sm class="pa-4">
+              <v-text-field
+              v-model="npass"
+              label="Enter new password"
+              hint="At least 8 characters"
+              min="8"
+              :append-icon="npassvis ? 'visibility' : 'visibility_off'"
+              :append-icon-cb="() => (npassvis = !npassvis)"
+              :type="npassvis ? 'password' : 'text'"
+            ></v-text-field>
+              <v-text-field
+              v-model="cpass"
+              label="Confirm your password"
+              :append-icon="cpassvis ? 'visibility' : 'visibility_off'"
+              :append-icon-cb="() => (cpassvis = !cpassvis)"
+              :rules="confirmrule"
+              :error="!matchingpass"
+              :type="cpassvis ? 'password' : 'text'"
+            ></v-text-field>
+          </v-container>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn flat color="primary" @click="passdialog = false">Cancel</v-btn>
+            <v-btn flat :disabled="!matchingpass || cpass == '' || npass == ''" @click="passdialog = false; changepassword();">Confirm</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
 
     <v-snackbar
     :timeout="10000"

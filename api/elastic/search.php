@@ -19,8 +19,8 @@ function search($user,$input,$number)
         if (count($qData) == 1)
         {   
             $multimatch = new stdClass();
-            $multimatch->multi_match->query = $qData[0];
-            $multimatch->multi_match->fields = ["subject","to","from","text","tag"];
+            $multimatch->query_string->query = "*".unaccent($qData[0])."*";
+            $multimatch->query_string->fields = ["subject","to","from","text","tag"];
             $data->query->bool->must[] = $multimatch; 
         }
         else
@@ -30,7 +30,7 @@ function search($user,$input,$number)
                 $searchfield = translate($qData[1], $user);
             else
                 $searchfield = $qData[1];
-            $match = '{ "match": { "'.$qData[0].'":  "'.$searchfield.'" }}';
+            $match = '{ "wildcard": { "'.$qData[0].'":  "*'.unaccent($searchfield).'*" }}';
             $match = json_decode($match);
             $data->query->bool->must[] = $match;
         }
@@ -85,7 +85,6 @@ function search($user,$input,$number)
             
             $group = array();
             $responseref = json_decode(curl_exec($req));
-            curl_close($req);
 
             foreach ($responseref->hits->hits as $hit)
             {
@@ -102,7 +101,7 @@ function search($user,$input,$number)
             $return->groups[] = $group;
         }
 
-        //curl_close($req);
+        curl_close($req);
         return json_encode($return);
     }
     else

@@ -37,6 +37,8 @@ function signup($username, $password)
 
     //initialise tags
     file_put_contents($config['maildir'].'/'.$username."/tags.txt","[]");
+    //initialise mailer
+    file_put_contents($config['maildir'].'/'.$username."/mailer.txt","");
     
     //new index for elasticsearch
     $req = curl_init();

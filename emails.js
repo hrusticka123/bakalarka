@@ -39,10 +39,11 @@ Vue.component('account-menu',
 {
     data: function () {
         return {
-          items: [ {title: "Settings"},{ title: "Logout" } ]
+          items: [ {title: "Set Mailer"},{title: "Change Password"},{ title: "Logout" } ],
         }
       },
     template: `
+    <div>
     <v-menu offset-y>
     <v-btn icon color="primary" dark slot="activator" large><v-icon large>account_circle</v-icon></v-btn>
         <v-list>
@@ -51,13 +52,33 @@ Vue.component('account-menu',
         </v-list-tile>
       </v-list>
     </v-menu>
+    </div>
     `,
     methods:
     {
         action: function(value)
         {
-            if (value =="Logout")
-                this.logout();
+            switch(value)
+            {
+                case 'Logout':
+                    this.logout();
+                    break;
+                case 'Set Mailer':
+                    layout.mailerdialog = true;
+                    var data = { user: loggeduser};
+                    $.ajax({
+                        url: 'api/client/getmailer',
+                        type: 'POST',
+                        data: data
+                    }).then(function(data)
+                    { 
+                        layout.mailer = data;
+                    });
+                    break;
+                case 'Change Password':
+                    layout.passdialog = true;
+                    break;
+            }
         },
         logout: function()
         {
@@ -136,7 +157,8 @@ Vue.component('file-upload',
           uploadError: null,
           currentStatus: null,
           uploadFieldName: 'file',
-          fileCount: 0
+          fileCount: 0,
+          currenthash: ''
         }
       },
       computed: {
@@ -155,7 +177,10 @@ Vue.component('file-upload',
       },
       methods: {
         reset() {
-            var data = { atts: this.uploadedFiles };
+            var data = { atts: this.uploadedFiles,
+            user: loggeduser,
+            hash: this.currenthash
+         };
             $.ajax({
                 url: 'api/emails/removeatts',
                 data: data,
@@ -165,7 +190,7 @@ Vue.component('file-upload',
           this.currentStatus = STATUS_INITIAL;
           this.uploadedFiles = [];
           this.uploadError = null;
-
+        this.currenthash = '';
 
           
         },
@@ -174,16 +199,17 @@ Vue.component('file-upload',
           this.currentStatus = STATUS_SAVING;
 
           $.ajax({
-            url: 'api/emails/upload',
+            url: 'api/emails/upload/' + loggeduser,
             data: formData,
             processData: false,
             contentType: false,
             type: 'POST',
           }).then(data => {
+              
             this.$nextTick(() =>{
-
                 var result = JSON.parse(data);
-                      
+                this.currenthash = result.hash;
+
                 if (result.success)
                  {
                     this.currentStatus = STATUS_SUCCESS;
@@ -194,7 +220,7 @@ Vue.component('file-upload',
                     this.currentStatus = STATUS_FAILED;
                     this.uploadError = "Files are too big to upload";
                  }
-                })  
+                }) 
           });
         },
         filesChange(fieldName, fileList) {
@@ -285,6 +311,7 @@ Vue.component('new-email',
     {
         send: function()
         {
+            uploadref = this.$refs.upload;
             var data = {
                     info:
                     {
@@ -293,7 +320,8 @@ Vue.component('new-email',
                         text: this.text,
                         from: loggeduser,
                         atts: this.$refs.upload.uploadedFiles,
-                        mailer: layout.mailer
+                        mailer: layout.mailer,
+                        atthash: this.$refs.upload.currenthash
                     }
                 };
                 
@@ -310,8 +338,8 @@ Vue.component('new-email',
             }).then(function(data)
             {  
                 var result = JSON.parse(data);
-                    layout.alertme(result.message,result.success);
-
+                layout.alertme(result.message,result.success);
+                uploadref.reset();
             });             
 
         } 
@@ -466,7 +494,7 @@ Vue.component('search',
                     type: 'POST',
                     data: data
                 }).then(function(data)
-                { 
+                {
                     result = JSON.parse(data);
                     if (result.success)
                     {
@@ -693,7 +721,14 @@ var layout = new Vue({
     el: '#emails',
     data: 
     {
-    mailer: "Marcel",
+    passdialog: false,
+    cpass:'',
+    npass:'',
+    cpassvis:true,
+    npassvis:true,
+    confirmrule: [() => ("The email and password you entered don\'t match")],
+    mailer: "",
+    mailerdialog: false,
     alert:
     {
         color: '',
@@ -719,12 +754,19 @@ var layout = new Vue({
             { icon: 'add', text: 'Add tag', search:"call:addtag" },
             { icon: 'find_in_page', text: 'Add current search', search:"call:addsearch" }
         ]},
-        { icon: 'date_range', text: 'Calendar' },
-        { icon: 'settings', text: 'Settings' }
+        { icon: 'date_range', text: 'Calendar', search:"call:calendar" },
+        { icon: 'help', text: 'Help', search:"call:help" }
     ]
     },
     props: {
     source: String
+    },
+    computed:
+    {
+        matchingpass: function()
+        {
+            return this.cpass == this.npass;
+        }
     },
     methods:
     {
@@ -753,6 +795,7 @@ var layout = new Vue({
             {
                 newtag = "";
                 newtext = "";
+                $actiontag = false;
                 switch (tag.search.split(":")[1])
                 {
                     case "addtag":
@@ -766,17 +809,31 @@ var layout = new Vue({
                         newtext = "NewSearch";
                     }
                     break;
+                    case "help":
+                    {
+                        actiontag = true;
+                        this.alertme("BAZINGA! No help for you, yet...", false);
+                    }
+                    break;
+                    case "calendar":
+                    {
+                        actiontag = true;
+                        this.alertme("BAZINGA! No calendar for you, yet...", false);
+                    }
+                    break;
                 }
-
-                var data = { user: loggeduser , tag : newtag, text: newtext };
-                $.ajax({
-                    url: 'api/client/addusertag',
-                    type: 'POST',
-                    data: data
-                }).then(function(data)
-                { 
-                    layout.refreshTags();
-                });
+                if (!actiontag)
+                {
+                    var data = { user: loggeduser , tag : newtag, text: newtext };
+                    $.ajax({
+                        url: 'api/client/addusertag',
+                        type: 'POST',
+                        data: data
+                    }).then(function(data)
+                    { 
+                        layout.refreshTags();
+                    });
+                }
             }
             else
             {
@@ -830,11 +887,37 @@ var layout = new Vue({
             this.$refs.newmail.subject = info.subject;
             this.$refs.newmail.text = info.text;
             this.$refs.newmail.fwdinfo = info;
+        },
+        setmailer: function(mailer = '')
+        {
+            if (mailer != '')
+            {
+                this.mailer = mailer;
+            }
+            else
+            {
+                var data = { user : loggeduser, mailer: this.mailer};
+                $.ajax({
+                    url: 'api/client/setmailer',
+                    type: 'POST',
+                    data: data
+                });
+                this.alertme("Mailer was successfully changed to " + this.mailer, true);
+            }
+        },
+        changepassword: function()
+        {
+            var data = { user : loggeduser, password: this.cpass };
+                $.ajax({
+                    url: 'api/client/changepassword',
+                    type: 'POST',
+                    data: data
+                });
+                this.alertme("Password successfully changed", true);
         }
-
     },
     mounted: function()
-    {
+    {   
         this.refreshTags();
     }
 })

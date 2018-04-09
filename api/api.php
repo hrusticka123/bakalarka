@@ -35,13 +35,13 @@ switch ($parsedquery[0])
             }
             break;
             case 'upload':
-            {   
-                echo upload($_FILES);
+            {  
+                echo upload($_FILES, $parsedquery[2]);
             }
             break;
             case 'removeatts':
             {   
-                echo removeatts($_POST['atts']);
+                echo removeatts($_POST['atts'],$_POST['user'],$_POST['hash']);
             }
             break;
          }
@@ -107,6 +107,21 @@ switch ($parsedquery[0])
             case 'adjustusertag':
             {
                 echo adjustusertag($_POST['id'], $_POST['user'],json_encode($_POST['info']));
+            }
+            break;
+            case 'getmailer':
+            {
+                echo getmailer($_POST['user']);
+            }
+            break;
+            case 'setmailer':
+            {
+                setmailer($_POST['user'],$_POST['mailer']);
+            }
+            break;
+            case 'changepassword':
+            {   
+                echo changepassword($_POST['user'],$_POST['password']);
             }
             break;
          }

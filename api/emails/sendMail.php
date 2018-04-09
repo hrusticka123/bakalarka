@@ -20,7 +20,7 @@ function sendmail($info)
         $mail->addReplyTo($info['from'], $info['mailer']);
 
         foreach($info['atts'] as $att)
-            $mail->addAttachment($config['maildir']."/temp/".$att);         
+            $mail->addAttachment($config['maildir']."/".$info['from']."/".$info['atthash']."/".$att);         
 
         $mail->isHTML(true);                               
         $mail->Subject = $info['subject'];
@@ -36,12 +36,9 @@ function sendmail($info)
 
         $mail->preSend();
 
-        return decide($mail->getSentMIMEMessage());
+        decide($mail->getSentMIMEMessage());
         if (strpos($info['to'], '@hruska.blesmrt.cf') === false)
             $mail->postSend();
-
-        foreach($info['atts'] as $att)
-            unlink($config['maildir']."/temp/".$att); 
 
         return '{ "success" : true, "message" : "Message sent successfully" } ';
     }

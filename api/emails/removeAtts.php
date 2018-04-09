@@ -1,9 +1,9 @@
 <?php
 
-function removeatts($atts)
+function removeatts($atts,$user,$hash)
 {
     $config = require "./config.php";
-    $dir = $config['maildir']."/temp";
+    $dir = $config['maildir']."/".$user."/".$hash;
     $files = glob($dir."/*"); 
 
     foreach ($atts as $att)
@@ -14,6 +14,7 @@ function removeatts($atts)
 
         }
     }
+    rmdir($dir);
     return json_encode($files);
 }
 

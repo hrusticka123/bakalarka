@@ -18,12 +18,11 @@ function savemailtoes($parsedData, $user, $hash)
     curl_close($elasticReq);
 
     if ($parsedData['references'])
-        return updatereferences($parsedData['references'],$user,$parsedData['messageid']);
+        updatereferences($parsedData['references'],$user,$parsedData['messageid']);
 }
 
 function updatereferences($refs,$user,$newid)
 {
-    $response = array();
     $elasticReq = curl_init();
     foreach($refs as $ref)
     {
@@ -36,10 +35,7 @@ function updatereferences($refs,$user,$newid)
         CURLOPT_RETURNTRANSFER => true,
         ));
 
-        $response[] = curl_exec($elasticReq);
-        $response[] = '{ "script": { "lang": "painless", "source": "ctx._source.references.add(params.ref)", "params": { "ref": "'.$newid.'" } }, "query": { "term": { "messageid": "'.$ref.'" } } } ';
     }
     curl_close($elasticReq);
-    return json_encode($response);
 }
 ?>

@@ -22,5 +22,7 @@ require 'elastic/saveMail.php';
 require 'emails/saveMail.php';
 require 'emails/removeAtts.php';
 require 'client/usertags.php';
+require 'client/mailer.php';
+require 'client/password.php';
 
 ?>

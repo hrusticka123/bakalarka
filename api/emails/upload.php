@@ -1,12 +1,15 @@
 <?php
 
-function upload($files)
+function upload($files,$user)
 {  
     $config = require "./config.php";
     $return = new stdClass();
     $return->files = array();
-    $uploads_dir = $config['maildir']."/temp";
-
+    $hash = makehash($files);
+    $return->hash = $hash;
+    $uploads_dir = $config['maildir']."/".$user."/".$hash;
+    mkdir($uploads_dir);
+    
     foreach ($files as $file) {
         if ($file['error'] == 0) {
             $tmp_name = $file["tmp_name"];
@@ -26,5 +29,16 @@ function upload($files)
 
     $return->success = true;
     return json_encode($return);
+}
+
+function makehash()
+{
+    $hashstring = '';
+    foreach ($files as $file) {
+        if ($file['error'] == 0) {
+            $hashstring .= $file["tmp_name"];
+        }
+    }
+    return hash("sha256",$hashstring);
 }
 ?>

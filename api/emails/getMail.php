@@ -18,10 +18,7 @@ function getmail($groups, $user)
     $i = 0;
     foreach ($groups as $group)
     {
-        $return->groups[$i] = new stdClass();
-        $return->groups[$i]->emails = array();
-        $return->groups[$i]->tags = array();
-        $return->groups[$i]->ids = array();
+
         $j = 0;
         foreach ($group as $id)
         {
@@ -29,7 +26,7 @@ function getmail($groups, $user)
             if ($mail)
             {
                 $Parser->setText($mail);
-
+                $tags = json_decode(file_get_contents($config['maildir']."/".$user."/".$id."/".$id.".tags")); 
                 if ($j == 0)
                 { 
                     $match_date = new DateTime();
@@ -67,26 +64,26 @@ function getmail($groups, $user)
                                 $i++;
                             }
                     }
-                }
 
-                $tags = json_decode(file_get_contents($config['maildir']."/".$user."/".$id."/".$id.".tags")); 
-
-                if ($j == 0)
-                {
+                    $return->groups[$i] = new stdClass();
+                    $return->groups[$i]->emails = array();
+                    $return->groups[$i]->tags = array();
+                    $return->groups[$i]->ids = array();
                     $return->groups[$i]->subject = $Parser->getHeader("subject");
                     $return->groups[$i]->id = $id;
                 }
+
                 foreach ($tags as $newtag)
                 {
                     if(!in_array($newtag,$return->groups[$i]->tags))
                         $return->groups[$i]->tags[] = $newtag;
                 }
 
-
                 $return->groups[$i]->emails[$j] = new stdClass();
                 $return->groups[$i]->emails[$j]->id = $id;
                 $return->groups[$i]->ids[] = $id;
                 $return->groups[$i]->emails[$j]->messageid = $Parser->getHeader("message-id");
+
                 if ($Parser->getHeader("references"))
                 {
                     $return->groups[$i]->emails[$j]->references = array();
@@ -97,10 +94,12 @@ function getmail($groups, $user)
                         $return->groups[$i]->emails[$j]->references[] = $ref;
                     }
                 }
+
                 $return->groups[$i]->emails[$j]->from= $Parser->getHeader("from");
                 $return->groups[$i]->emails[$j]->to = $Parser->getHeader("to");
                 $return->groups[$i]->emails[$j]->date = $Parser->getHeader("date");
-                $preview = (strlen($Parser->getMessageBody("text")) > 10) ? substr($Parser->getMessageBody("text"),0,10)."..." : substr($Parser->getMessageBody("text"),0,strlen($Parser->getMessageBody("text")));
+                
+                $preview = (strlen($Parser->getMessageBody("text")) > 10) ? mb_substr($Parser->getMessageBody("text"),0,10)."..." : mb_substr($Parser->getMessageBody("text"),0,strlen($Parser->getMessageBody("text")));
                 $return->groups[$i]->emails[$j]->preview = $preview;
                 $htmlbody = $Parser->getMessageBody("html");
                 if ($htmlbody != "")
@@ -111,6 +110,7 @@ function getmail($groups, $user)
                 foreach($attachments as $att)
                     $atts[] = $att->getFilename();
                 $return->groups[$i]->emails[$j]->atts = $atts;
+
             }
             else
                 return '{"success" : false}';
