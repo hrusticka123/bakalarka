@@ -12,7 +12,7 @@ function decide($received)
     //mail hash
     $hash = hash("sha256",$received);
     //from header is from our users, parse it as sent
-    if (strpos($Parser->getHeader("from"), "@hruska.blesmrt.cf") !== false)
+    if (strpos($Parser->getHeader("from"), $config['domain']) !== false)
     {
         $sentuser = $Parser->getHeader("from");
         $tags = ["sent"];
@@ -50,7 +50,7 @@ function decide($received)
     foreach ($receivedusers as $receiveduser)
     {
         $receiveduser = pureuser($receiveduser);
-        if (strpos($receiveduser, "@hruska.blesmrt.cf") !== false)
+        if (strpos($receiveduser, $config['domain']) !== false)
         {
             //database of users
             //mail was sent to us but we need to check if received user exist

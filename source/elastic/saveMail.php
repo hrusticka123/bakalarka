@@ -12,9 +12,9 @@ function savemailtoes($parsedData, $user, $hash)
     CURLOPT_RETURNTRANSFER => true,
     ));
 
-     curl_exec($elasticReq);
-
+     $resp = curl_exec($elasticReq);
     curl_close($elasticReq);
+    return $resp;
 //for simpler and faster grouping, all references are push in elasticsearch to all email in group
     if ($parsedData['references'])
        updatereferences($parsedData['references'],$user,$parsedData['messageid']);

@@ -1,11 +1,9 @@
 <?php
 
 function signup($username, $password)
-{
-    $username = $username."@hruska.blesmrt.cf";
-    
+{   
     $config = require './config.php';
-
+    $username = $username.'@'.$config['domain'];
     //check for empty
     if ($username == '' || $password == '')
     {
@@ -46,7 +44,7 @@ function signup($username, $password)
     curl_setopt_array($req, [
         CURLOPT_URL            => "http://localhost:9200/".$username."?pretty",
         CURLOPT_CUSTOMREQUEST  => "PUT",
-        CURLOPT_POSTFIELDS     => ' { "settings" : {  "number_of_shards" : 1, "number_of_replicas" : 1 },  "mappings": { "email": { "properties": { "date": {  "type": "date", "format" : "E, d MMM Y H:m:s Z" } } } } } ',
+        CURLOPT_POSTFIELDS     => ' { "settings" : {  "number_of_shards" : 1, "number_of_replicas" : 1 },  "mappings": { "email": { "properties": { "date": {  "type": "date", "format" : "E, d MMM Y H:m:s Z" }, "messageid" : {"type" : "keyword"  },  "references" : {"type" : "keyword" } } } } } ',
         CURLOPT_HTTPHEADER     => [ "Content-Type: application/json" ],
         CURLOPT_RETURNTRANSFER => true
     ]);

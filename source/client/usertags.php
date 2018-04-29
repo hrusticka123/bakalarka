@@ -21,7 +21,7 @@ function addusertag($user,$tag,$text)
     
     $currtags[] = $newtag;
     file_put_contents($config['maildir']."/".$user."/tags.txt", json_encode($currtags));
-    return json_encode($issearch);
+    return $newtag->search;
 }
 
 //change existing tag

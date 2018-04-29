@@ -25,7 +25,8 @@ function getmail($groups, $user)
         //first, we have to parse most recent date information for each group because of the headers above the group
         //so we parse the last email in the group
         $match_date = new DateTime();
-        $match_date = DateTime::createFromFormat( "D, d M Y H:i:s O", $Parser->getHeader("date"));
+        $puredate = substr($Parser->getHeader("date"), 0, strpos($Parser->getHeader("date"), " (")); 
+        $match_date = DateTime::createFromFormat( "D, d M Y H:i:s O", $puredate);
         $match_date->setTime( 0, 0, 0 );
 
         //compute the difference between current date and parsed date

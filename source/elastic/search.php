@@ -62,7 +62,6 @@ function search($user,$input,$number)
     ]);
     
     $response = json_decode(curl_exec($req));
-
     //if some results were found
     if ($response->hits->total > 0)
     {

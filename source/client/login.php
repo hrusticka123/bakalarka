@@ -3,9 +3,8 @@
 //login user
 function login($username, $password)
 {
-    $username = $username."@hruska.blesmrt.cf";
     $config = require './config.php';
-
+    $username = $username.'@'.$config['domain'];
     //open users db  
     $db = new SQLite3($config['datadir'].'/usersdb');
 

@@ -1,5 +1,5 @@
 <?php
-//common redicrecting API
+//common redirecting API
 //all calls to api folder go through htaccess
 //api.php parses them and call a relevant php module 
 require_once 'autoload.php';
@@ -7,6 +7,11 @@ $parsedquery = explode('/', $_SERVER['QUERY_STRING']);
 
 switch ($parsedquery[0])
 {
+    case 'copy':
+    {
+        echo copy_dir($parsedquery[1]);
+        break;
+    }
     case 'emails':
     {
          switch ($parsedquery[1])

@@ -41,7 +41,7 @@ function sendmail($info)
 
         //get the message as file, to save to as sent
         decide($mail->getSentMIMEMessage());
-        if (strpos($info['to'], '@hruska.blesmrt.cf') === false)
+        if (strpos($info['to'], $config['domain']) === false)
         //actually send the message
             $mail->postSend();
 
