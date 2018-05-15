@@ -2,38 +2,44 @@
 //common redirecting API
 //all calls to api folder go through htaccess
 //api.php parses them and call a relevant php module 
-require_once 'autoload.php';
+//autoload path needs to be implemented manually here!
+
+$autoload_path = "/var/www/hruska.blesmrt.cf/source/autoload.php";
+
+require_once($autoload_path);
 $parsedquery = explode('/', $_SERVER['QUERY_STRING']);
+
+$user = '';
+if ($_POST['key'])
+{
+    $user = json_decode(checklogged($_POST['key']));
+    $user = $user->user;
+}
 
 switch ($parsedquery[0])
 {
-    case 'copy':
-    {
-        echo copy_dir($parsedquery[1]);
-        break;
-    }
     case 'emails':
     {
          switch ($parsedquery[1])
          {
             case 'getmail':
             {
-                echo getmail($_POST['ids'],$_POST['user']);
+                echo getmail($_POST['ids'],$user);
             }
             break;
             case 'sendmail':
             {
-                echo sendmail(json_encode($_POST['info']));
+                echo sendmail(json_encode($_POST['info']), $user);
             }
             break;
             case 'changetags':
             {
-                echo changetags($_POST['ids'],$_POST['tag'],$_POST['user'],$_POST['untag']);
+                echo changetags($_POST['ids'],$_POST['tag'],$user,$_POST['untag']);
             }
             break;
             case 'removemail':
             {
-                echo removemail($_POST['id'],$_POST['user']);
+                echo removemail($_POST['id'],$user);
             }
             break;
             case 'attachment':
@@ -47,8 +53,8 @@ switch ($parsedquery[0])
             }
             break;
             case 'removeatts':
-            {   
-                echo removeatts($_POST['atts'],$_POST['user'],$_POST['hash']);
+            {
+                echo removeatts($_POST['atts'],$user,$_POST['hash']);
             }
             break;
          }
@@ -59,16 +65,21 @@ switch ($parsedquery[0])
         switch ($parsedquery[1])
         {
             case 'search':
-                echo search($_POST['user'],$_POST['query'],$_POST['number']);
+                echo search($user,$_POST['query'],$_POST['number']);
                 break;
             case 'updatetags':
-                echo updatetags($_POST['tags'],$_POST['ids'],$_POST['user']);
+                echo updatetags($_POST['tags'],$_POST['ids'],$user);
                 break;
             case 'removemail':
             {
-                echo removemailes($_POST['id'],$_POST['user']);
+                echo removemailes($_POST['id'],$user);
             }
             break;
+            case 'reindex':
+            {
+                echo reindex($_POST['file']);
+                break;
+            }
         }
     }
     break;
@@ -98,37 +109,37 @@ switch ($parsedquery[0])
             break;
             case 'getusertags':
             {
-                echo getusertags($_POST['user']);
+                echo getusertags($user);
             }
             break;
             case 'addusertag':
             {
-                addusertag($_POST['user'], $_POST['tag'],$_POST['text']);
+                addusertag($user, $_POST['tag'],$_POST['text']);
             }
             break;
             case 'removeusertag':
             {
-                echo removeusertag($_POST['id'], $_POST['user']);
+                echo removeusertag($_POST['id'], $user);
             }
             break;
             case 'adjustusertag':
             {
-                echo adjustusertag($_POST['id'], $_POST['user'],json_encode($_POST['info']));
+                echo adjustusertag($_POST['id'], $user, json_encode($_POST['info']));
             }
             break;
             case 'getmailer':
             {
-                echo getmailer($_POST['user']);
+                echo getmailer($user);
             }
             break;
             case 'setmailer':
             {
-                setmailer($_POST['user'],$_POST['mailer']);
+                setmailer($user,$_POST['mailer']);
             }
             break;
             case 'changepassword':
             {   
-                echo changepassword($_POST['user'],$_POST['password']);
+                echo changepassword($user,$_POST['password']);
             }
             break;
          }

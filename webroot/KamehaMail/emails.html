@@ -118,7 +118,7 @@
                   <div slot="header" @click="markRead(item.id);reply = false;">      
         
                     <!-- each mail's menu -->
-                  <mail-menu ref="mailmenu" :mailsubject="item.subject" :mailids="item.ids" :avtags="items[3].tags" :mailtags="item.tags"></mail-menu>
+                  <mail-menu ref="mailmenu" :mailsubject="item.subject" :mailids="item.ids" :avtags="items[4].tags" :mailtags="item.tags"></mail-menu>
                   </div>
 
                   <v-divider></v-divider>
@@ -131,7 +131,7 @@
         </v-expansion-panel> 
       </v-flex>
       <v-spacer></v-spacer>
-      <v-layout justify-center><v-btn align="center" @click="getSomeMore()">GIVE ME MORE!!!</v-btn></v-layout>
+      <v-layout justify-center><v-btn align="center" @click="getSomeMore()">Load more</v-btn></v-layout>
     </v-content>
     
     <!-- send new email -->
@@ -187,7 +187,7 @@
 
 
       <!-- warnings/alerts bar -->
-    <v-snackbar :timeout="10000" :color="alert.color" v-model="alert.bar">
+    <v-snackbar :timeout="3000" :color="alert.color" v-model="alert.bar">
     {{ alert.text }}
     <v-btn dark flat @click.native="alert.bar = false">Close</v-btn>
   </v-snackbar>

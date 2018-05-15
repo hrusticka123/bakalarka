@@ -14,7 +14,7 @@ window.onload = function()
             }).then(function(data)
             {
                 var result = JSON.parse(data);
-                if (result.success)
+                if (result.user)
                     window.location.href = 'emails.html';
             });
     }

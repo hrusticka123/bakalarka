@@ -3,10 +3,8 @@
 //login user
 function login($username, $password)
 {
-    $config = require './config.php';
-    $username = $username.'@'.$config['domain'];
     //open users db  
-    $db = new SQLite3($config['datadir'].'/usersdb');
+    $db = new SQLite3(datadir.'/usersdb');
 
     $sql = 'SELECT * FROM USERS';
     $ret = $db->query($sql);
@@ -20,7 +18,7 @@ function login($username, $password)
             $loginkey = hash("sha256",$username.$password.time());
 
             //add to db
-            $dbkeys = new SQLite3($config['datadir'].'/loginkeys');
+            $dbkeys = new SQLite3(datadir.'/loginkeys');
             $stmt = $dbkeys->prepare('INSERT INTO LOGINKEYS (KEY, USER) VALUES (?, ?)');
             $stmt->bindValue(1, $loginkey, SQLITE3_TEXT);
             $stmt->bindValue(2, $username, SQLITE3_TEXT);

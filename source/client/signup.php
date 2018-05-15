@@ -2,8 +2,6 @@
 
 function signup($username, $password)
 {   
-    $config = require './config.php';
-    $username = $username.'@'.$config['domain'];
     //check for empty
     if ($username == '' || $password == '')
     {
@@ -11,7 +9,7 @@ function signup($username, $password)
     }
 
     //open db with users
-    $db = new SQLite3($config['datadir'].'/usersdb');
+    $db = new SQLite3(datadir.'/usersdb');
     
     $sql = 'SELECT * FROM USERS';
     $ret = $db->query($sql);
@@ -31,12 +29,12 @@ function signup($username, $password)
     $db->close();
 
     //create folder for emails
-    mkdir($config['maildir'].'/'.$username);
+    mkdir(maildir.'/'.$username);
 
     //initialise tags
-    file_put_contents($config['maildir'].'/'.$username."/tags.txt","[]");
+    file_put_contents(maildir.'/'.$username."/tags.txt","[]");
     //initialise mailer
-    file_put_contents($config['maildir'].'/'.$username."/mailer.txt","");
+    file_put_contents(maildir.'/'.$username."/mailer.txt","");
     
     //new index for elasticsearch
     $req = curl_init();
@@ -44,7 +42,7 @@ function signup($username, $password)
     curl_setopt_array($req, [
         CURLOPT_URL            => "http://localhost:9200/".$username."?pretty",
         CURLOPT_CUSTOMREQUEST  => "PUT",
-        CURLOPT_POSTFIELDS     => ' { "settings" : {  "number_of_shards" : 1, "number_of_replicas" : 1 },  "mappings": { "email": { "properties": { "date": {  "type": "date", "format" : "E, d MMM Y H:m:s Z" }, "messageid" : {"type" : "keyword"  },  "references" : {"type" : "keyword" } } } } } ',
+        CURLOPT_POSTFIELDS     => ' { "settings" : {  "number_of_shards" : 2, "number_of_replicas" : 2 },  "mappings": { "email": { "properties": { "date": {  "type": "date", "format" : "E, d MMM Y H:m:s Z" }, "messageid" : {"type" : "keyword"  },  "references" : {"type" : "keyword" } } } } } ',
         CURLOPT_HTTPHEADER     => [ "Content-Type: application/json" ],
         CURLOPT_RETURNTRANSFER => true
     ]);

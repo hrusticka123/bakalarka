@@ -4,8 +4,6 @@
 
 function getmail($groups, $user)
 {
-    $config = require './config.php';
-    
     $return = new stdClass();
     $return->success = true;
     //groups of emails
@@ -21,12 +19,13 @@ function getmail($groups, $user)
     $i = 0;
     foreach ($groups as $group)
     {
-        $Parser->setPath($config['maildir']."/".$user."/".end($group)."/".end($group));
+        $Parser->setPath(maildir."/".$user."/".end($group)."/".end($group));
         //first, we have to parse most recent date information for each group because of the headers above the group
         //so we parse the last email in the group
         $match_date = new DateTime();
-        $puredate = substr($Parser->getHeader("date"), 0, strpos($Parser->getHeader("date"), " (")); 
+        $puredate = explode(" (", $Parser->getHeader("date"))[0]; 
         $match_date = DateTime::createFromFormat( "D, d M Y H:i:s O", $puredate);
+
         $match_date->setTime( 0, 0, 0 );
 
         //compute the difference between current date and parsed date
@@ -67,13 +66,13 @@ function getmail($groups, $user)
         //each groups email
         foreach ($group as $id)
         {
-            $mail = file_get_contents($config['maildir']."/".$user."/".$id."/".$id);
+            $mail = file_get_contents(maildir."/".$user."/".$id."/".$id);
             //parsing specific email data for view
             if ($mail)
             {
                 $InnerParser = new PhpMimeMailParser\Parser();
                 $InnerParser->setText($mail);
-                $tags = json_decode(file_get_contents($config['maildir']."/".$user."/".$id."/".$id.".tags")); 
+                $tags = json_decode(file_get_contents(maildir."/".$user."/".$id."/".$id.".tags")); 
                 //first email of the group is not changing and initiated the conversation
                 //whole group mail information, such as subject, are retrieved from him
                 if ($j == 0)

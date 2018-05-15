@@ -1,4 +1,4 @@
-var loggeduser = '';
+loggeduser = '';
 
 //check for logged user at the beggining
 window.onload = function()
@@ -14,10 +14,8 @@ window.onload = function()
             }).then(function(data)
             {
                 var result = JSON.parse(data);
-                
-                if (!result.success)
-                    window.location.href = 'index.html';
-                else
+
+                if (result.user)
                 {
                     loggeduser = result.user;
                     allowothers();
@@ -172,7 +170,7 @@ Vue.component('file-upload',
       methods: {
         reset() {
             var data = { atts: this.uploadedFiles,
-            user: loggeduser,
+            key: window.localStorage.getItem('loginkey'),
             hash: this.currenthash
          };
             $.ajax({
@@ -191,7 +189,7 @@ Vue.component('file-upload',
           this.currentStatus = STATUS_SAVING;
 
           $.ajax({
-            url: 'api/emails/upload/' + loggeduser,
+            url: 'api/emails/upload/' + window.localStorage.getItem('loginkey'),
             data: formData,
             processData: false,
             contentType: false,
@@ -306,7 +304,7 @@ Vue.component('new-email',
         </v-container>
         <v-card-actions>
           <file-upload ref="upload"></file-upload>
-          <v-btn flat color="primary" @click="dialog = false">Cancel</v-btn>
+          <v-btn flat color="primary" @click="dialog = false; clearForm();">Cancel</v-btn>
           <v-btn flat @click="dialog = false; send();">Send</v-btn>
         </v-card-actions>
       </v-card>
@@ -315,6 +313,13 @@ Vue.component('new-email',
     `,
     methods:
     {
+        clearForm: function()
+        {
+            this.to = '';
+            this.subject = '';
+            this.text = '';
+            this.$refs.upload.reset();
+        },
         send: function()
         {
             uploadref = this.$refs.upload;
@@ -324,11 +329,11 @@ Vue.component('new-email',
                         to: this.to,
                         subject: this.subject,
                         text: this.text,
-                        from: loggeduser,
                         atts: this.$refs.upload.uploadedFiles,
                         mailer: layout.mailer,
                         atthash: this.$refs.upload.currenthash
-                    }
+                    },
+                    key: window.localStorage.getItem('loginkey')
                 };
                 
             if (this.extrainfo != null)
@@ -443,9 +448,9 @@ Vue.component('mail-group',
                     to: (this.conversation.to.includes(loggeduser)) ? this.conversation.from : this.conversation.to,
                     subject: "Re:" + this.subject,
                     text: this.replytext + ((this.includeorig == true) ? "<br><br> <b>Reply to: </b><br>" + this.conversation.html : ""),
-                    from: loggeduser,
                     mailer: layout.mailer
-                }
+                },
+                key: window.localStorage.getItem('loginkey')
             };
 
             $.ajax({
@@ -493,12 +498,13 @@ Vue.component('search',
 {
     data: function () {
         return {
-            input: 'tag:inbox'
+            input: 'tag:inbox',
+            took: ''
         }
       },
     template: `
     <v-layout row>
-    <v-btn icon v-on:click="esearch(10)">
+    <v-btn icon v-on:click="resetCurrent();esearch(10)">
           <v-icon>search</v-icon>
       </v-btn>
       <v-text-field
@@ -508,38 +514,39 @@ Vue.component('search',
         label="Search"
         class="hidden-sm-and-down"
       ></v-text-field>
+      &ensp;{{ took }}
       </v-layout>
     `,
     methods:
     {
+        resetCurrent: function()
+        {
+            layout.currentlyLoaded = 10;
+        },
         esearch: function (currentlyLoaded)
         {
-            if (loggeduser != '')
+            var data = { 
+                    key : window.localStorage.getItem('loginkey'),
+                    query : this.input,
+                    number : currentlyLoaded
+                };
+            $.ajax({
+                url: 'api/elastic/search',
+                type: 'POST',
+                data: data
+            }).then(data => 
             {
-                var data = { 
-                        user : loggeduser,
-                        query : this.input,
-                        number : currentlyLoaded
-                    };
-                $.ajax({
-                    url: 'api/elastic/search',
-                    type: 'POST',
-                    data: data
-                }).then(function(data)
+                var result = JSON.parse(data);
+                if (result.success)
                 {
-                    result = JSON.parse(data);
-                    if (result.success)
-                    {
-                        layout.showmail(result.groups);
-                        layout.result = result.hitcount;
-                    }
-                    else
-                    {
-                        layout.emaillist = [];
-                        layout.result = 'No match found';
-                    }
-                });
-            }
+                    layout.showmail(result.groups);
+                }
+                else
+                {
+                    layout.emaillist = [];
+                }
+                layout.alertme(result.message, result.success);
+            });
         }
     },
     created: function () 
@@ -567,9 +574,15 @@ Vue.component('mail-menu',
     <div v-if="hasTag('unread')"><h1>{{mailsubject}}</h1></div>
     <div v-else>{{mailsubject}}</div>
     <v-spacer></v-spacer>
+    <ul style="list-style-type:none">
+    <li v-for="tag in realTags" v-if="hasTag(tag.search)">
+        <font color="green">{{ tag.text }}</font>
+    </li>
+    </ul>
     <v-btn icon @click.stop="tagMail('unread',hasTag('unread'))"><v-icon>mail</v-icon></v-btn>
+    <v-btn icon @click.stop="tagMail('archive',hasTag('archive'))"><v-icon v-if="hasTag('archive')">check_circle</v-icon><v-icon v-else>check_circle_outline</v-icon></v-btn>
     <v-btn v-if="hasTag('trash')" icon @click.stop="tagMail('trash', true)"><v-icon>undo</v-icon></v-btn>
-    <v-btn icon @click.stop="tagMail('trash',hasTag('trash'))"><v-icon v-if="hasTag('trash')">delete_forever</v-icon><v-icon v-else>delete</v-icon></v-btn>
+    <v-btn v-if="hasTag('trash') === false" icon @click.stop="tagMail('trash',hasTag('trash'))"><v-icon >delete</v-icon></v-btn>
     <v-menu offset-y v-model="menu">
     <v-btn icon slot="activator" @click.stop="menu = !menu"><v-icon>flag</v-icon></v-btn>
         <v-list>
@@ -609,15 +622,10 @@ Vue.component('mail-menu',
         },
         tagMail: function(tag,untag)
         {
-            if (this.mailtags.includes('trash') && tag == "trash" && untag == false)
-            {
-                this.removeMail();
-            }
-
             var mailids = this.mailids;
             var data = {
                 ids: this.mailids,
-                user: loggeduser,
+                key: window.localStorage.getItem('loginkey'),
                 tag: tag,
                 untag: untag
             };
@@ -626,21 +634,25 @@ Vue.component('mail-menu',
                 url: 'api/emails/changetags',
                 type: 'POST',
                 data: data
-            }).then(function(tags)
+            }).then(function(data)
             { 
-                var data = {
-                    tags: tags,
-                    user: loggeduser,
-                    ids: mailids
-                };
-                $.ajax({
-                    url: 'api/elastic/updatetags',
-                    type: 'POST',
-                    data: data
-                }).done(function(data)
+                var result = JSON.parse(data);
+                if (result.changed)
                 {
-                    layout.$refs.searchinput.esearch(layout.currentlyLoaded);
-                });
+                    var data = {
+                        tags: result.tags,
+                        key: window.localStorage.getItem('loginkey'),
+                        ids: mailids
+                    };                 
+                    $.ajax({
+                        url: 'api/elastic/updatetags',
+                        type: 'POST',
+                        data: data
+                    }).done(function(data)
+                    {
+                        layout.$refs.searchinput.esearch(layout.currentlyLoaded);
+                    });           
+                }
             });
         },
         //removes only latest mail of the group
@@ -649,7 +661,7 @@ Vue.component('mail-menu',
             var mailid = this.mailid;
             var data = {
                 id: this.mailid,
-                user: loggeduser
+                key: window.localStorage.getItem('loginkey')
             };
             $.ajax({
                 url: 'api/emails/removemail',
@@ -658,7 +670,7 @@ Vue.component('mail-menu',
             }).then(function(data)
             {
                var data = {
-                    user: loggeduser,
+                    key: window.localStorage.getItem('loginkey'),
                     id: mailid
                 };
                 $.ajax({
@@ -712,7 +724,7 @@ Vue.component('tag-menu',
             var tag = this.tag;
             var data = {
                 id: this.tag.search,
-                user: loggeduser
+                key: window.localStorage.getItem('loginkey')
             };
             $.ajax({
                 url: 'api/client/removeusertag',
@@ -731,7 +743,7 @@ Vue.component('tag-menu',
         {
             var data = {
                 id: this.tag.search,
-                user: loggeduser,
+                key: window.localStorage.getItem('loginkey'),
                 info: {
                     icon: this.inputicon,
                     text: this.inputtext,
@@ -787,9 +799,10 @@ var layout = new Vue({
         //general, for searching
         { icon: 'inbox', text: 'Inbox', search:"tag:inbox" },
         { icon: 'send', text: 'Sent', search:"tag:sent" },
+        { icon: 'done', text: 'Archive', search:"tag:archive" },
         { icon: 'delete', text: 'Trash', search:"tag:trash" },
         {
-            //tags menu
+        //tags menu
         icon: 'keyboard_arrow_up',
         'icon-alt': 'keyboard_arrow_down',
         text: 'Tags',
@@ -799,9 +812,6 @@ var layout = new Vue({
             { icon: 'add', text: 'Add tag', search:"call:addtag" },
             { icon: 'find_in_page', text: 'Add current search', search:"call:addsearch" }
         ]},
-        //not working
-        { icon: 'date_range', text: 'Calendar', search:"call:calendar" },
-        { icon: 'help', text: 'Help', search:"call:help" }
     ]
     },
     props: {
@@ -822,7 +832,7 @@ var layout = new Vue({
         {
             var data = {
                 ids: mailids,
-                user: loggeduser
+                key: window.localStorage.getItem('loginkey')
             };
             $.ajax({
                 url: 'api/emails/getmail',
@@ -859,22 +869,10 @@ var layout = new Vue({
                         newtext = "NewSearch";
                     }
                     break;
-                    case "help":
-                    {
-                        actiontag = true;
-                        this.alertme("BAZINGA! No help for you, yet...", false);
-                    }
-                    break;
-                    case "calendar":
-                    {
-                        actiontag = true;
-                        this.alertme("BAZINGA! No calendar for you, yet...", false);
-                    }
-                    break;
                 }
                 if (!actiontag)
                 {
-                    var data = { user: loggeduser , tag : newtag, text: newtext };
+                    var data = { key: window.localStorage.getItem('loginkey') , tag : newtag, text: newtext };
                     $.ajax({
                         url: 'api/client/addusertag',
                         type: 'POST',
@@ -904,12 +902,12 @@ var layout = new Vue({
         //download attachment
         download: function(mailid, attName)
         {
-            window.location = "api/emails/attachment/"+mailid+"/"+loggeduser+"/"+attName;
+            window.location = "api/emails/attachment/"+mailid+"/"+window.localStorage.getItem('loginkey')+"/"+attName;
         },
         //refresh tag menu for new/deleted tags to be displayed
         refreshTags: function()
         {
-            var data = { user: loggeduser };
+            var data = { key : window.localStorage.getItem('loginkey') };
 
             $.ajax({
                 url: 'api/client/getusertags',
@@ -918,9 +916,9 @@ var layout = new Vue({
             }).then(function(data)
             { 
                 result = JSON.parse(data);
-                layout.items[3].tags = [];
+                layout.items[4].tags = [];
                 result.forEach(function(tag) {
-                    layout.items[3].tags.push(tag);
+                    layout.items[4].tags.push(tag);
                 });
             });
         },
@@ -942,7 +940,7 @@ var layout = new Vue({
         {
             this.$refs.newmail.dialog = true;
             this.$refs.newmail.subject = info.subject;
-            this.$refs.newmail.replytext = info.text;
+            this.$refs.newmail.text = info.text;
             this.$refs.newmail.extrainfo = info;
             this.$refs.newmail.to = info.to;
         },
@@ -955,7 +953,7 @@ var layout = new Vue({
             }
             else
             {
-                var data = { user : loggeduser, mailer: this.mailer};
+                var data = { key: window.localStorage.getItem('loginkey'), mailer: this.mailer};
                 $.ajax({
                     url: 'api/client/setmailer',
                     type: 'POST',
@@ -967,7 +965,7 @@ var layout = new Vue({
         //change password
         changepassword: function()
         {
-            var data = { user : loggeduser, password: this.cpass };
+            var data = { key: window.localStorage.getItem('loginkey'), password: this.cpass };
                 $.ajax({
                     url: 'api/client/changepassword',
                     type: 'POST',
@@ -979,7 +977,7 @@ var layout = new Vue({
     mounted: function()
     {   
         this.refreshTags();
-        var data = { user: loggeduser};
+        var data = { key: window.localStorage.getItem('loginkey')};
         $.ajax({
             url: 'api/client/getmailer',
             type: 'POST',

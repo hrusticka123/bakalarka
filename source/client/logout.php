@@ -2,10 +2,8 @@
 
 function logout($loginkey)
 {
-    $config = include './config.php';
-
     //get login keys
-    $db = new SQLite3($config['datadir'].'/loginkeys');
+    $db = new SQLite3(datadir.'/loginkeys');
     $stmt = $db->prepare('SELECT * FROM LOGINKEYS WHERE KEY = ?');
     $stmt->bindValue(1, $loginkey, SQLITE3_TEXT);
     $ret = $stmt->execute();

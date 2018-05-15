@@ -4,15 +4,13 @@
 //parses the email and saves necessary parts
 function decide($received)
 {
-    $config = require(dirname(__DIR__).'/config.php');
-
     $Parser = new PhpMimeMailParser\Parser();
     $Parser->setText($received);
 
     //mail hash
     $hash = hash("sha256",$received);
     //from header is from our users, parse it as sent
-    if (strpos($Parser->getHeader("from"), $config['domain']) !== false)
+    if (strpos($Parser->getHeader("from"), domain) !== false)
     {
         $sentuser = $Parser->getHeader("from");
         $tags = ["sent"];
@@ -24,7 +22,7 @@ function decide($received)
         $data = array(
             "from" => unaccent($sentuser) ,
             "to" => unaccent($Parser->getHeader("to")),
-            "date" => $Parser->getHeader("date"),
+            "date" => explode(" (", $Parser->getHeader("date"))[0], 
             "subject" => unaccent($Parser->getHeader("subject")),
             "text" => unaccent($Parser->getMessageBody("text")),
             "messageid" => substr(htmlspecialchars($Parser->getHeader("message-id")),4,-4),
@@ -50,11 +48,11 @@ function decide($received)
     foreach ($receivedusers as $receiveduser)
     {
         $receiveduser = pureuser($receiveduser);
-        if (strpos($receiveduser, $config['domain']) !== false)
+        if (strpos($receiveduser, domain) !== false)
         {
             //database of users
             //mail was sent to us but we need to check if received user exist
-            $db = new SQLite3($config['datadir'].'/usersdb');
+            $db = new SQLite3(datadir.'/usersdb');
 
             $sql = 'SELECT * FROM USERS';
             $ret = $db->query($sql);
@@ -76,7 +74,7 @@ function decide($received)
                     $data = array(
                         "from" => unaccent($Parser->getHeader("from")),
                         "to" => unaccent($receiveduser),
-                        "date" => $Parser->getHeader("date"),
+                        "date" => explode(" (", $Parser->getHeader("date"))[0],
                         "subject" => unaccent($Parser->getHeader("subject")),
                         "text" => unaccent($Parser->getMessageBody("text")),
                         "messageid" => substr(htmlspecialchars($Parser->getHeader("message-id")),4,-4),
@@ -102,36 +100,4 @@ function decide($received)
     }
 }
 
-//removes all unwanted symbols, such as '<>' or whitespaces, and the mailer name
-function pureuser($receiveduser)
-{
-    $user = preg_replace('/\s+/', '', $receiveduser);
-    if (count(explode('<',$user)) > 1)
-        return str_replace(">","",explode('<',$user)[1]);
-    else
-        return $user;
-}
-
-//refs without '<>' and whitespaces
-function purerefs($references)
-{
-    $references = htmlspecialchars($references);
-    $references = str_replace("&gt;", "",$references);
-    $parts = explode("&lt;",$references);
-    array_splice($parts,0,1);
-    $newrefs = array();
-    foreach ($parts as $part)
-    {
-        $newrefs[] = preg_replace('/\s+/', '', $part);
-    }
-    return $newrefs;
-}
-
-//remove all language accents, works fine on czech and slovak
-//its used for elasticsearch storage
-function unaccent($string)
-{
-    setlocale(LC_CTYPE, 'en_US.UTF8');
-    return iconv("UTF-8", "ASCII//TRANSLIT", $string);
-}
 ?>

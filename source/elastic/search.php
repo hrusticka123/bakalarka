@@ -9,14 +9,14 @@ function search($user,$input,$number)
     //split query by AND
     $queries = explode("and", $input);
 
+    $return = new \stdClass();
     $data = new stdClass();
     $data->query = new stdClass();
-    $data->query->bool = new stdClass();
-    $data->query->bool->must = array();
 
     //for filtering the trash messages from standard search
     //except for the case when we want to look at the trashed messages
     $wannabeintrash = false;
+    $wannabeinarchive = true;
 
     foreach ($queries as $query)
     {
@@ -27,25 +27,44 @@ function search($user,$input,$number)
         {   
             $multimatch = new stdClass();
             $multimatch->query_string->query = "*".unaccent($qData[0])."*";
-            $multimatch->query_string->fields = ["subject","to","from","text","tag"];
+            $multimatch->query_string->fields = ["subject","to","from","text"];
             $data->query->bool->must[] = $multimatch; 
         }
         else
         {
-            //search field was specified, search in it
-            $searchfield = '';
-            if ($qData[0] == "tag")
-                $searchfield = translate($qData[1], $user);
+            //date filtering
+            if($qData[0] == "time")
+            {
+                if(($str = getTime($qData[1])) !== false)
+                {
+                    $range->range = json_decode('{ "date" : { '.$str.', "format" : "dd.MM.yyyy||dd/MM/yyyy" } }');
+                    $data->query->bool->must[] = $range;
+                }
+                else
+                {
+                    $return->success = false;
+                    $return->message = "Wrong date format, d.m.y or d/m/y expected";
+                    return json_encode($return);
+                }
+            }
             else
-                $searchfield = $qData[1];
-            $match = '{ "wildcard": { "'.$qData[0].'":  "*'.unaccent($searchfield).'*" }}';
-            $match = json_decode($match);
-            $data->query->bool->must[] = $match;
+            {
+                //search field was specified, search in it
+                $match = '';
+                if ($qData[0] == "tag")
+                    $match = json_decode('{ "term": { "tag":  "'.translate($qData[1], $user).'" }}');
+                else
+                    $match = json_decode('{ "wildcard": { "'.$qData[0].'":  "*'.unaccent($qData[1]).'*" }}');
+                $data->query->bool->must[] = $match;
+            }
         }
 
-        //we are looking in trash
+        //trashed wanted
         if ($query == "tag:trash")
             $wannabeintrash = true;
+        //archived wanted
+        else if ($query == "tag:inbox" || $query == "tag:sent")
+            $wannabeinarchive = false;
     }
 
     //sorting by date
@@ -56,18 +75,19 @@ function search($user,$input,$number)
     curl_setopt_array($req, [
         CURLOPT_URL            => "http://localhost:9200/".$user."/email/_search?size=".$number."&pretty",
         CURLOPT_CUSTOMREQUEST  => "GET",
-        CURLOPT_POSTFIELDS     => json_encode($data),
+        CURLOPT_POSTFIELDS     => json_encode($data,JSON_UNESCAPED_SLASHES),
         CURLOPT_HTTPHEADER     => [ "Content-Type: application/json" ],
         CURLOPT_RETURNTRANSFER => true,
     ]);
     
     $response = json_decode(curl_exec($req));
+
     //if some results were found
     if ($response->hits->total > 0)
     {
-        $return = new \stdClass();
+        $hitcount = 0;
         $return->success = true;
-        $return->hitcount = $response->hits->total;
+        $took = $response->took;
         $return->groups = array();
 
         //looking for all possible references to found mails
@@ -75,14 +95,22 @@ function search($user,$input,$number)
 
         foreach($response->hits->hits as $hit)
         {
-            $isintrash = false;
+            $skip = false;
             //check for duplicates
-            if(in_array($hit->_source->messageid,$alreadyfoundreferences))
+            if(in_array($hit->_id,$alreadyfoundreferences))
                 continue;
+            else if (empty($hit->_source->references))
+            {
+                $group = array();
+                $group[] = $hit->_id;
+                $return->groups[] = $group;
+                $hitcount++;
+                continue;
+            }
 
-            $dataref = new stdClass();
-            $dataref ->query = new stdClass();
-            $dataref ->query->bool = new stdClass();
+            $dataref = new \stdClass();
+            $dataref->query = new \stdClass();
+            $dataref->query->bool = new \stdClass();
             //look for messages with references to hit message or the hit message itself
             $dataref ->query->bool= json_decode(' { "should" : [ { "term" : { "messageid" : "'.$hit->_source->messageid.'" } }, { "term" : { "references" : "'.$hit->_source->messageid.'" } } ], "minimum_should_match": 1 }');
             $dataref ->sort = json_decode( '{ "date" : "asc" }');
@@ -101,37 +129,59 @@ function search($user,$input,$number)
             //grouping of emails by references
             foreach ($responseref->hits->hits as $hit)
             {
-                if (in_array("trash",$hit->_source->tag))
+                if ((in_array("trash",$hit->_source->tag) && !$wannabeintrash) || (in_array("archive",$hit->_source->tag) && !$wannabeinarchive))
                 {
-                    $isintrash = true;
+                    $skip = true;
+                    break;
                 }
-
+                $took += $responseref->took;
+                $hitcount++;
                 $group[] = $hit->_id;
-                $alreadyfoundreferences[] = $hit->_source->messageid;
+                $alreadyfoundreferences[] = $hit->_id;
             }
-            if ($isintrash && !$wannabeintrash)
+            if ($skip)
                 continue;
             $return->groups[] = $group;
         }
 
         curl_close($req);
+        $return->message = $hitcount." results (".$took."ms)";
         return json_encode($return);
     }
     else
-        return '{ "success" : false }';
+    {
+        $return->success = false;
+        $return->message = "No match found";
+        return json_encode($return);
+    }
 }
 
-//translates from query tag to real tag as it is saved
-function translate($usertag, $user)
+function getTime($data)
 {
-    $realtags = json_decode(getusertags($user));
-    foreach ($realtags as $realtag)
+    if (($pos = strpos($data,"<")) !== false)
     {
-        $tagtext = strtolower($realtag->text);
-        $tagtext = preg_replace('/\s+/', '', $tagtext);
-        if ($usertag == $tagtext)
-            return $realtag->search;
+        $time = substr($data,$pos+1);
+        if (DateTime::createFromFormat( "d.m.Y", $time) === false && DateTime::createFromFormat( "d/m/Y", $time) === false) return false;
+        else return '"lte" : "'.$time.'"';
     }
-    return $usertag;
+    else if (($pos = strpos($data,">")) !== false)
+    {
+        $time = substr($data,$pos+1);
+        if (DateTime::createFromFormat( "d.m.Y", $time) === false && DateTime::createFromFormat( "d/m/Y", $time) === false) return false;
+        else return '"gte" : "'.$time.'"';
+    }
+    else if (strpos($data,"-") !== false)
+    {
+        $time = explode("-",$data);
+        if ((DateTime::createFromFormat( "d.m.Y", $time[0]) === false && DateTime::createFromFormat( "d/m/Y", $time)[0] === false)
+         || (DateTime::createFromFormat( "d.m.Y", $time[1]) === false && DateTime::createFromFormat( "d/m/Y", $time)[1] === false)) return false;
+        else return '"lte" : "'.$time[1].'", "gte" : "'.$time[0].'"';
+    }
+    else
+    {
+        if (DateTime::createFromFormat( "d.m.Y", $data) === false && DateTime::createFromFormat( "d/m/Y", $data) === false) return false;
+        else return '"lte" : "'.$data.'", "gte" : "'.$data.'"';
+    }
 }
+
 ?>

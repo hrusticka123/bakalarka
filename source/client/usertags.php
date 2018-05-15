@@ -3,15 +3,13 @@
 //get current users tags
 function getusertags($user)
 {
-    $config = require "./config.php";
-    return file_get_contents($config['maildir']."/".$user."/tags.txt");
+    return file_get_contents(maildir."/".$user."/tags.txt");
 }
 
 //add new tag
 function addusertag($user,$tag,$text)
 {
-    $config = require "./config.php";
-    $currtags = json_decode(file_get_contents($config['maildir']."/".$user."/tags.txt"));
+    $currtags = json_decode(file_get_contents(maildir."/".$user."/tags.txt"));
     
     $newtag = new stdClass();
     $newtag->icon = "label";
@@ -20,15 +18,14 @@ function addusertag($user,$tag,$text)
     $newtag->issearch = ($tag != '') ? "true" : "false";
     
     $currtags[] = $newtag;
-    file_put_contents($config['maildir']."/".$user."/tags.txt", json_encode($currtags));
+    file_put_contents(maildir."/".$user."/tags.txt", json_encode($currtags));
     return $newtag->search;
 }
 
 //change existing tag
 function adjustusertag($tagid, $user, $info)
 {
-    $config = require "./config.php";
-    $currtags = json_decode(file_get_contents($config['maildir']."/".$user."/tags.txt"));
+    $currtags = json_decode(file_get_contents(maildir."/".$user."/tags.txt"));
     $info = json_decode($info);
     
     foreach ($currtags as $currtag)
@@ -42,14 +39,13 @@ function adjustusertag($tagid, $user, $info)
         }
     }
 
-    file_put_contents($config['maildir']."/".$user."/tags.txt", json_encode($currtags));
+    file_put_contents(maildir."/".$user."/tags.txt", json_encode($currtags));
 }
 
 //remove user tag
 function removeusertag($tag, $user)
 {
-    $config = require "./config.php";
-    $currtags = json_decode(file_get_contents($config['maildir']."/".$user."/tags.txt"));
+    $currtags = json_decode(file_get_contents(maildir."/".$user."/tags.txt"));
     
     $i = 0;
     foreach ($currtags as $currtag)
@@ -63,7 +59,7 @@ function removeusertag($tag, $user)
 
     array_splice($currtags, $i, 1);
 
-    file_put_contents($config['maildir']."/".$user."/tags.txt", json_encode($currtags));
+    file_put_contents(maildir."/".$user."/tags.txt", json_encode($currtags));
 }
 
 //create tag

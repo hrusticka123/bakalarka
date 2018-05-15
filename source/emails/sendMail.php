@@ -1,16 +1,15 @@
 <?php
 
 //send email from info
-function sendmail($info)
+function sendmail($info,$from)
 {
-    $config = require "./config.php";
     $info = json_decode($info, true);
     $mail = new PHPMailer\PHPMailer\PHPMailer(true);   
 
     try
     {
         //set the info for PHPMailer
-        $mail->setFrom($info['from'], $info['mailer']);
+        $mail->setFrom($from, $info['mailer']);
         $toaddress = '';
         if (count(explode('<',$info['to'])) > 1)
             $toaddress = str_replace(">","",explode('<',$info['to'])[1]);
@@ -19,10 +18,10 @@ function sendmail($info)
 
         $mail->addAddress($toaddress);   
 
-        $mail->addReplyTo($info['from']);
+        $mail->addReplyTo($from);
 
         foreach($info['atts'] as $att)
-            $mail->addAttachment($config['maildir']."/".$info['from']."/".$info['atthash']."/".$att);         
+            $mail->addAttachment(maildir."/".$from."/".$info['atthash']."/".$att);         
 
         $mail->isHTML(true);                               
         $mail->Subject = $info['subject'];
@@ -41,7 +40,7 @@ function sendmail($info)
 
         //get the message as file, to save to as sent
         decide($mail->getSentMIMEMessage());
-        if (strpos($info['to'], $config['domain']) === false)
+        if (strpos($info['to'], domain) === false)
         //actually send the message
             $mail->postSend();
 

@@ -1,14 +1,17 @@
 <?php
 //temporarily uploads files for send
-function upload($files,$user)
+function upload($files,$loginkey)
 {  
-    $config = require "./config.php";
+    $check = json_decode(checklogged($loginkey));
+    $user = $check->user;
+    
     $return = new stdClass();
     $return->files = array();
     //we create hash for the files, which will be their directory
     $hash = makehash($files);
     $return->hash = $hash;
-    $uploads_dir = $config['maildir']."/".$user."/".$hash;
+
+    $uploads_dir = maildir."/".$user."/".$hash;
     //create the directory
     mkdir($uploads_dir);
     

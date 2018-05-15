@@ -3,8 +3,7 @@
 //deletes attachments after upload is done
 function removeatts($atts,$user,$hash)
 {
-    $config = require "./config.php";
-    $dir = $config['maildir']."/".$user."/".$hash;
+    $dir = maildir."/".$user."/".$hash;
     $files = glob($dir."/*"); 
 
     foreach ($atts as $att)
