@@ -1,0 +1,70 @@
+
+%% Verze pro jednostranný tisk:
+% Okraje: levý 40mm, pravý 25mm, horní a dolní 25mm
+% (ale pozor, LaTeX si sám přidává 1in)
+\documentclass[12pt,a4paper]{report}
+
+% \openright zařídí, aby následující text začínal na pravé straně knihy
+\let\openright=\clearpage
+
+%% Pokud tiskneme oboustranně:
+% \documentclass[12pt,a4paper,twoside,openright]{report}
+% \setlength\textwidth{145mm}
+% \setlength\textheight{247mm}
+% \setlength\oddsidemargin{14.2mm}
+% \setlength\evensidemargin{0mm}
+% \setlength\topmargin{0mm}
+% \setlength\headsep{0mm}
+% \setlength\headheight{0mm}
+% \let\openright=\cleardoublepage
+
+%% Vytváříme PDF/A-2u
+\usepackage[a-2u]{pdfx}
+
+%% Přepneme na českou sazbu a fonty Latin Modern
+\usepackage[slovak]{babel}
+\usepackage{lmodern}
+\usepackage[IL2]{fontenc}%T1
+\usepackage{textcomp}
+\usepackage{hyperref}
+
+\usepackage{float}
+\usepackage{subfigure}
+
+%% Použité kódování znaků: obvykle latin2, cp1250 nebo utf8:
+\usepackage[utf8]{inputenc}
+
+%%% Další užitečné balíčky (jsou součástí běžných distribucí LaTeXu)
+\usepackage{amsmath}        % rozšíření pro sazbu matematiky
+\usepackage{amsfonts}       % matematické fonty
+\usepackage{amsthm}         % sazba vět, definic apod.
+
+%bolo treba vypnut kvoli rozdelovaniu
+%\usepackage{bbding}         % balíček s nejrůznějšími symboly
+% (čtverečky, hvězdičky, tužtičky, nůžtičky, ...)
+\usepackage{bm}             % tučné symboly (příkaz \bm)
+\usepackage{graphicx}       % vkládání obrázků
+\usepackage{fancyvrb}       % vylepšené prostředí pro strojové písmo
+\usepackage{indentfirst}    % zavede odsazení 1. odstavce kapitoly
+%\usepackage{natbib}         % zajištuje možnost odkazovat na literaturu
+% stylem AUTOR (ROK), resp. AUTOR [ČÍSLO]
+\usepackage[nottoc]{tocbibind} % zajistí přidání seznamu literatury,
+% obrázků a tabulek do obsahu
+\usepackage{icomma}         % inteligetní čárka v matematickém módu
+\usepackage{dcolumn}        % lepší zarovnání sloupců v tabulkách
+\usepackage{booktabs}       % lepší vodorovné linky v tabulkách
+\usepackage{paralist}       % lepší enumerate a itemize
+\usepackage[usenames]{xcolor}  % barevná sazba
+
+\usepackage{url}
+
+\usepackage{pdfpages}
+%opening
+\title{}
+\author{}
+
+\begin{document}
+	\pagestyle{empty}
+\section*{Abstrakt}
+Webmails are indisposable interfaces for working with the e-mail on the current Internet, mostly because of the simplicity of their deployment in browsers and easy integration with many provider-specific features. The most important features that are partially or fully missing in current open-source webmail implementations include directory-less mail organization by tags, navigation driven by a high-performance fulltext search, and integration of time-management capabilities. This thesis describes a new open-source alternative to advanced commercial webmails that possesses these features. The software integrates full-text search capabilities of the ElasticSearch database with current e-mail processing infrastructure on UNIX systems to create a back-end server application, which is used by a Javascript-based browser front-end. The performance of the solution is tested on a large e-mail dataset.
+\end{document}

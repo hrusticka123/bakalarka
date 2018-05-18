@@ -1,0 +1,25 @@
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+This thesis has reviewed the necessary means and tools for creating a modern, web-based end-user e-mail interface, mainly the high-performance full-text search and customisable tags, while avoiding the usage of mail folders for mail organization. The main result of the thesis, the mail interface KamehaMail, provides a simple open-source alternative to the commercial user interfaces (e.g. Google Inbox).
+
+In \autoref{mailprocess} we have discussed the format of e-mail messages, e-mail exchange on the Internet and several details of the related e-mail infrastructure; including the classification of mail-transfer agents and brief description of the used communication protocols. We reviewed and classified some of the existing end-user e-mail interfaces, which are the main concern of this thesis.
+
+In \autoref{textsearch}, we have described the currently used techniques for creating a working searchable database using an inverted index structures, which can be later used for implementing a database capable of high-performance. We have provided several examples of used queries and of the matching process. At the end, the chapter compares the full-text search to standard database search and looks briefly at the current search engines.
+
+Finally we have connected an open-source search engine ElasticSearch to the mail processing infrastructure and a web-based end-user interface to create KamehaMail. Implementation details, used tools, frameworks and libraries are detailed in \autoref{implementation}. 
+
+We have benchmarked KamehaMail (and ElasticSearch) by indexing approximately 200 thousand e-mails from the publicly available Enron e-mail data set~\cite{klimt2004enron} and measuring the search time required to complete several queries in the resulting mailbox. The results are available in \autoref{results}.
+
+KamehaMail can run on any reasonably modern UNIX-like operating system that can run a mail server, a web server, and ElasticSearch. A simple installation and user guide is provided in \autoref{userguide}.
+
+\section{Future work}
+The implementation of KamehaMail is not perfect and we provide ideas for the improvement of both interface and the API library:
+\begin{itemize}
+\item Implement safety measures against JavaScript e-mail messages.
+\item Support for more complex queries. The search possibilities of the current interface are limited due to the desired simplicity of the user queries. ElasticSearch offers great variety of different options for querying, which can be mapped to the syntax of KamehaMail queries to expose more functionality to the users.
+\item Implementation of built-in calendar and a snooze feature (known from Google Inbox) would benefit the connection of user e-mail management to time-management. KamehaMail API can be easily extended to support this feature.
+\item Hierarchical tags are a feature that can provide the hierarchical mail-classification workflow of nested directory structures while still providing the ability to search by tags without the cumbersome parallel maintenance of both classification structures. ElasticSearch supports this kind of tagging via wildcard queries.
+\item Addition of more user account management possibilities, e.g. avatars, signatures, mail aliases, addressbooks, or other commonly expectable features.
+\item Improve the design of the interface to work nicely on smartphones (or generally smaller screens), or create a native mobile application that communicates directly with the KamehaMail API.
+\item Caching of the search results to the browser for speeding the interface's response time.
+\end{itemize} 

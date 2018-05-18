@@ -1,0 +1,196 @@
+%%% The main file. It contains definitions of basic parameters and includes all other parts.
+
+%% Settings for single-side (simplex) printing
+% Margins: left 40mm, right 25mm, top and bottom 25mm
+% (but beware, LaTeX adds 1in implicitly)
+% \documentclass[12pt,a4paper]{report}
+% \setlength\textwidth{145mm}
+% \setlength\textheight{247mm}
+% \setlength\oddsidemargin{15mm}
+% \setlength\evensidemargin{15mm}
+% \setlength\topmargin{0mm}
+% \setlength\headsep{0mm}
+% \setlength\headheight{0mm}
+% \openright makes the following text appear on a right-hand page
+% \let\openright=\clearpage
+
+%% Settings for two-sided (duplex) printing
+\documentclass[12pt,a4paper,twoside,openright]{report}
+% tyhle rucni nastaveni stranek jsou uprimne kravina, protoze
+% autor \setlength\textwidth{145mm}
+% sablony \setlength\textheight{247mm}
+% nepochopil \setlength\oddsidemargin{14.2mm}
+% skutkovou podstatu \setlength\evensidemargin{0mm}
+% oboustranneho tisku \setlength\topmargin{0mm}
+% a vyznam a prakticky duvod \setlength\headsep{0mm}
+% sirokeho vnejsiho page marginu \setlength\headheight{0mm}
+\let\openright=\cleardoublepage
+
+%% Generate PDF/A-2u
+\usepackage[a-2u]{pdfx}
+
+%% Character encoding: usually latin2, cp1250 or utf8:
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Prefer Latin Modern fonts
+\usepackage{lmodern}
+%% TODO Popremejslej nad timhle, to je takovej lepsi font na knizky
+%\usepackage[sc]{mathpazo}\linespread{1.05}
+%pripadne tenhle pouziva ACM na zurnaly, taky hodne dobre citelnej
+%\usepackage{libertine}\usepackage{libertinust1math}
+
+%% Further useful packages (included in most LaTeX distributions)
+\usepackage{amsmath}        % extensions for typesetting of math
+\usepackage{amsfonts}       % math fonts
+\usepackage{amsthm}         % theorems, definitions, etc.
+\usepackage{bbding}         % various symbols (squares, asterisks, scissors, ...)
+\usepackage{bm}             % boldface symbols (\bm)
+\usepackage{graphicx}       % embedding of pictures
+\usepackage{fancyvrb}       % improved verbatim environment
+\usepackage{natbib}         % citation style AUTHOR (YEAR), or AUTHOR [NUMBER]
+\usepackage[nottoc]{tocbibind} % makes sure that bibliography and the lists
+			    % of figures/tables are included in the table
+			    % of contents
+\usepackage{dcolumn}        % improved alignment of table columns
+\usepackage{booktabs}       % improved horizontal lines in tables
+\usepackage{paralist}       % improved enumerate and itemize
+\usepackage[usenames]{xcolor}  % typesetting in color
+\usepackage[capitalise]{cleveref}
+
+\usepackage[textsize=tiny]{todonotes}
+\newcommand{\todox}[1]{\textcolor{red}{#1}}
+
+%%% Basic information on the thesis
+
+% Thesis title in English (exactly as in the formal assignment)
+\def\ThesisTitle{Modern approach to user interfaces \\ for e-mail}
+%tohle je rozumny pouziti newlinu ^
+
+% Author of the thesis
+\def\ThesisAuthor{Marcel Hruška}
+
+% Year when the thesis is submitted
+\def\YearSubmitted{2018}
+
+% Name of the department or institute, where the work was officially assigned
+% (according to the Organizational Structure of MFF UK in English,
+% or a full name of a department outside MFF)
+\def\Department{Department of Software Engineering}
+
+% Is it a department (katedra), or an institute (ústav)?
+\def\DeptType{Department}
+
+% Thesis supervisor: name, surname and titles
+\def\Supervisor{Mgr. Miroslav Kratochvíl}
+
+% Supervisor's department (again according to Organizational structure of MFF)
+\def\SupervisorsDepartment{Department of Software Engineering}
+
+% Study programme and specialization
+\def\StudyProgramme{Computer Science}
+\def\StudyBranch{Programming and Software Systems}
+
+% An optional dedication: you can thank whomever you wish (your supervisor,
+% consultant, a person who lent the software, etc.)
+\def\Dedication{%
+I would like to express my sincere gratitude to my supervisor, Mgr. Miroslav Kratochvíl, for all the patience, help and advice he has given to me.
+
+I want to thank my girlfriend, my family and my friends for their constant support, especially during the last half year.
+
+I also want to thank the staff of VSHosting.cz for providing the server hosting space.
+}
+
+% Abstract (recommended length around 80-200 words; this is not a copy of your thesis assignment!)
+\def\Abstract{%
+Webmails are indisposable interfaces for working with the e-mail on the current Internet, mostly because of the simplicity of their deployment in browsers and easy integration with many provider-specific features. The most important features that are partially or fully missing in current open-source webmail implementations include directory-less mail organization by tags, navigation driven by a high-performance full-text search, and integration of time-management capabilities. This thesis describes a new open-source alternative to advanced commercial webmails that possesses these features. The software integrates full-text search capabilities of the ElasticSearch database with current e-mail processing infrastructure on UNIX systems to create a back-end server application, which is used by a Javascript-based browser front-end. The performance of the solution is tested on a large e-mail dataset.
+}
+
+% 3 to 5 keywords (recommended), each enclosed in curly braces
+\def\Keywords{%
+{key} {words}
+electronic mail, full-text search, databases
+}
+
+%% The hyperref package for clickable links in PDF and also for storing
+%% metadata to PDF (including the table of contents).
+%% Most settings are pre-set by the pdfx package.
+\hypersetup{unicode}
+\hypersetup{breaklinks=true}
+
+% Definitions of macros (see description inside)
+\include{macros}
+
+% Title page and various mandatory informational pages
+\begin{document}
+\include{title}
+
+%%% A page with automatically generated table of contents of the bachelor thesis
+
+\tableofcontents
+
+%%% Each chapter is kept in a separate file
+\include{preface}
+\include{emailprocessing}
+\include{textsearch}
+\include{implementation}
+\include{result}
+
+\include{epilog}
+
+%%% Bibliography
+\include{bibliography}
+
+\appendix
+\include{userguide}
+
+\openright
+\end{document}
+
+
+
+E-mail je v dnešnej dobe nenahraditeľným komunikačným prostriedkom na Internete. Jedny z najpopulárnejších rozhraní na prácu s e-mailami sú webové rozhrania, kedže sa jednoducho spúšťajú a integrujú viaceré, pre dodávateľa špecifické vylepšenia, ako sú napríklad služby na vyhľadávanie. Napriek týmto výhodám viacerí používatelia využívajú menej pokrokové riešenia, kvôli možnosti spravovať svoje e-maily na vlastnej infraštruktúre. 
+
+Táto práca má za cieľ vytvoriť voľne dostupnú alternatívu ku komerčným užívateľským rozhraniam, inšpirovanú Google Inbox-om, implementovaním moderných voľne dostupných nástrojov a knižníc. Vo všeobecnosti na vytvorenie e-mailového rozhrania musíme najprv naštudovať formát e-mailovej správy a spôsob komunikácie pomocou e-mailov. Kvôli podpore vysokorýchlostných plnotextových vyhľadávaní, táto práca taktiež opisuje techniky a štruktúry používané v plnotextovom vyhľadávaní, aby sme mohli implementovať príslušný prehľadávací nástroj a databázu do infraštruktúry na spracovanie e-mailov. Navrch toho je poskytnuté webové rozhranie pre užívateľa pre spravovanie e-mailov, ktoré spája vyššie spomenuté funkcionality.
+}
+
+% 3 to 5 keywords (recommended), each enclosed in curly braces
+\def\Keywords{%
+{key} {words}
+electronic mail, full-text search, databases
+}
+
+%% The hyperref package for clickable links in PDF and also for storing
+%% metadata to PDF (including the table of contents).
+%% Most settings are pre-set by the pdfx package.
+\hypersetup{unicode}
+\hypersetup{breaklinks=true}
+
+% Definitions of macros (see description inside)
+\include{macros}
+
+% Title page and various mandatory informational pages
+\begin{document}
+\include{title}
+
+%%% A page with automatically generated table of contents of the bachelor thesis
+
+\tableofcontents
+
+%%% Each chapter is kept in a separate file
+\include{preface}
+\include{emailprocessing}
+\include{textsearch}
+\include{implementation}
+\include{result}
+
+\include{epilog}
+
+%%% Bibliography
+\include{bibliography}
+
+\appendix
+\include{userguide}
+
+\openright
+\end{document}

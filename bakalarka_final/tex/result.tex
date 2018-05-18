@@ -1,0 +1,55 @@
+\chapter{Results}
+\label{results}
+In this chapter, we investigate the performance of the resulting software.
+
+KamehaMail is fully functional and implements almost all of the intended features. Additionally, we test the scalability of the searching capabilities of the interface on large amount of e-mails.
+
+\section{Benchmark setup}
+First of all, we prepared an environment sufficient for testing. Enron e-mail data set\cite{klimt2004enron} is a collection of roughly half million e-mails, freely accessible for anyone. Using the implemented admin interface, we dropped and indexed the Enron e-mails into one mailbox in the database. The e-mails were tagged according to the original position in the folder.
+
+We measured the results on two data sets of different sizes to provide better overview of performance scaling.
+
+The first data set consists of almost 27.000 e-mails found in the mailbox of the Enron user V. Kaminski. The second data set consists of 200.000 e-mails selected randomly from multiple mailboxes. The full data set was not benchmarked because of resource limitations.
+
+On both data sets, we measured the space needed for their storing in the database, and the time required to complete several testing queries.
+
+\section{Benchmark results}
+The results obtained on the indexed data sets are reported in \autoref{table:bench}.
+
+As expected, the more complicated cases were tested, the longer it took ElasticSearch to give the results. Increases in response time were caused by more complex queries, more indexed e-mails and more returned results. On the other hand, from the perspective of the user, the 7.4-times increase in the amount of data did not have a significant impact on the response time of the search. 
+
+The indexing process itself scaled satisfactorily --- indexing performance was approximately 40 e-mails per second on average, and it varied only negligibly with the increase of the index e-mail count.
+\begin{table}[t]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{10em} l l}
+ \toprule
+Query & 26.675 e-mails & 200.000 e-mails\\
+\midrule
+\texttt{tag:inbox} & &\\
+\hline
+Top 10 results & 1ms & 5ms\\
+Top 50 results & 3ms & 8ms\\
+Top 100 results & 8ms & 11ms\\
+\hline
+\texttt{tag:inbox and approval}  & &\\
+\hline
+Top 10 results & 14ms & 48ms\\
+Top 50 results & 16ms & 68ms\\
+Top 100 results & -- & 70ms\\
+\hline
+\texttt{tag:inbox and approval and time:<1.1.2002}  & &\\
+\hline
+Top 10 results & 18ms & 52ms\\
+Top 50 results & 20ms & 59ms\\
+Top 100 results & -- & 57ms\\
+\hline
+ & &\\
+\hline
+E-mail files disk space & 417MB & 2.7GB\\
+ElasticSearch's index disk space & 112MB & 394MB\\
+\bottomrule
+\end{tabular}
+\caption{Search and space results from benchmark performed on Enron e-mail data set.}
+\label{table:bench}
+\end{table}
