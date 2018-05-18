@@ -377,7 +377,8 @@ Vue.component('mail-group',
             <v-card-text>
                   {{email.date}}       
               <v-flex ma-3>
-            <span v-html="email.html"></span>
+              <div v-if="email.type == 'text'"><pre>{{ email.text }}</pre></div>
+            <div v-else><span v-html="email.text"></span></div>
             <div v-for="att in email.atts"><v-btn @click="download(email.id, att)">{{att}}</v-btn></div>
           </v-flex>
         </v-card-text>
@@ -571,7 +572,7 @@ Vue.component('mail-menu',
     template: `
     <v-layout row>
     ({{numberofmails}})
-    <div v-if="hasTag('unread')"><h1>{{mailsubject}}</h1></div>
+    <div v-if="hasTag('unread')"><strong>{{mailsubject}}</strong></div>
     <div v-else>{{mailsubject}}</div>
     <v-spacer></v-spacer>
     <ul style="list-style-type:none">
@@ -600,7 +601,7 @@ Vue.component('mail-menu',
         realTags: function()
         {
             return this.avtags.filter(function(u) {
-                return u.issearch == "false";
+                return u.issearch == 0;
             })
         },
         numberofmails: function()
@@ -654,34 +655,6 @@ Vue.component('mail-menu',
                     });           
                 }
             });
-        },
-        //removes only latest mail of the group
-        removeMail: function()
-        {
-            var mailid = this.mailid;
-            var data = {
-                id: this.mailid,
-                key: window.localStorage.getItem('loginkey')
-            };
-            $.ajax({
-                url: 'api/emails/removemail',
-                type: 'POST',
-                data: data
-            }).then(function(data)
-            {
-               var data = {
-                    key: window.localStorage.getItem('loginkey'),
-                    id: mailid
-                };
-                $.ajax({
-                    url: 'api/elastic/removemail',
-                    type: 'POST',
-                    data: data
-                }).done(function(data)
-                {
-                    layout.$refs.searchinput.esearch(layout.currentlyLoaded);
-                });
-            });
         }
     }
 })
@@ -708,7 +681,7 @@ Vue.component('tag-menu',
         <v-list-tile>
         <v-text-field label="Text" @click.stop v-model="inputtext"></v-text-field>
         </v-list-tile>
-        <v-list-tile v-if="tag.issearch == 'true'">
+        <v-list-tile v-if="tag.issearch == 1">
         <v-text-field label="Search"  @click.stop v-model="inputsearch"></v-text-field>
         </v-list-tile>
         <v-list-tile>
@@ -723,7 +696,7 @@ Vue.component('tag-menu',
         {
             var tag = this.tag;
             var data = {
-                id: this.tag.search,
+                id: this.tag.id,
                 key: window.localStorage.getItem('loginkey')
             };
             $.ajax({
@@ -732,17 +705,13 @@ Vue.component('tag-menu',
                 data: data
             }).then(function()
             {
-                if (tag.issearch == "false")
-                {
-                    
-                }
                layout.refreshTags();
             });
         },
         adjustUserTag: function()
         {
             var data = {
-                id: this.tag.search,
+                id: this.tag.id,
                 key: window.localStorage.getItem('loginkey'),
                 info: {
                     icon: this.inputicon,
@@ -755,7 +724,7 @@ Vue.component('tag-menu',
                 url: 'api/client/adjustusertag',
                 type: 'POST',
                 data: data
-            }).then(function()
+            }).then(function(data)
             {
                layout.refreshTags();
             });
@@ -886,7 +855,7 @@ var layout = new Vue({
             else
             {
                 //tags
-                this.$refs.searchinput.input = (tag.issearch == "false") ? "tag:" + tag.text : tag.search;
+                this.$refs.searchinput.input = (tag.issearch == 0) ? "tag:" + tag.text : tag.search;
                 this.currentlyLoaded = 10;
                 this.$refs.searchinput.esearch(this.currentlyLoaded);
             }

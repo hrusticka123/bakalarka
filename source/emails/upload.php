@@ -36,6 +36,7 @@ function upload($files,$loginkey)
     return json_encode($return);
 }
 
+//creates hash from attachments
 function makehash()
 {
     $hashstring = '';

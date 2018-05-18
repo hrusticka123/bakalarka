@@ -46,4 +46,10 @@ function translate($usertag, $user)
     }
     return $usertag;
 }
+
+//create hashed path for saving mails
+function getPathFromHash($hash)
+{
+    return substr(chunk_split(substr($hash,0,6),2,'/'), 0, -1);
+}
 ?>

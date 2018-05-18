@@ -4,9 +4,9 @@
 function savemail($user,$hash,$mail,$tags)
 {
     $tags = json_encode($tags);
-
-    $maildir = maildir."/".$user."/".$hash;
-    mkdir($maildir);
+    $path = getPathFromHash($hash);
+    $maildir = maildir."/".$user."/".$path;
+    mkdir($maildir,0777,true);
     file_put_contents($maildir."/".$hash, $mail);
     file_put_contents($maildir."/".$hash.".tags", $tags);
 }

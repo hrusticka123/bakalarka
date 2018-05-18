@@ -1,6 +1,6 @@
 <?php
 //search according to the given query in elasticsearch database
-//user to look at, input query and number of messages to be retrieved
+//parameters: user to look at, input query and number of messages to be retrieved
 function search($user,$input,$number)
 {
     //adjust the query for simpler processing
@@ -101,10 +101,13 @@ function search($user,$input,$number)
                 continue;
             else if (empty($hit->_source->references))
             {
-                $group = array();
-                $group[] = $hit->_id;
-                $return->groups[] = $group;
-                $hitcount++;
+                if (!((in_array("trash",$hit->_source->tag) && !$wannabeintrash) || (in_array("archive",$hit->_source->tag) && !$wannabeinarchive)))
+                {
+                    $group = array();
+                    $group[] = $hit->_id;
+                    $return->groups[] = $group;
+                    $hitcount++;
+                }
                 continue;
             }
 
@@ -156,6 +159,7 @@ function search($user,$input,$number)
     }
 }
 
+//parses time
 function getTime($data)
 {
     if (($pos = strpos($data,"<")) !== false)

@@ -4,7 +4,7 @@
 //api.php parses them and call a relevant php module 
 //autoload path needs to be implemented manually here!
 
-$autoload_path = "/var/www/hruska.blesmrt.cf/source/autoload.php";
+$autoload_path = "/path/to/autoload/";
 
 require_once($autoload_path);
 $parsedquery = explode('/', $_SERVER['QUERY_STRING']);
@@ -114,7 +114,7 @@ switch ($parsedquery[0])
             break;
             case 'addusertag':
             {
-                addusertag($user, $_POST['tag'],$_POST['text']);
+                echo addusertag($user, $_POST['tag'],$_POST['text']);
             }
             break;
             case 'removeusertag':
@@ -124,7 +124,7 @@ switch ($parsedquery[0])
             break;
             case 'adjustusertag':
             {
-                echo adjustusertag($_POST['id'], $user, json_encode($_POST['info']));
+                echo adjustusertag(intval($_POST['id']), $user, json_encode($_POST['info']));
             }
             break;
             case 'getmailer':

@@ -1,5 +1,6 @@
 <?php
 //saves mail to elastic database
+//parameters: data to be saved (pre parsed by /emails/saveMail.php), username and hash of e-mail
 function savemailtoes($parsedData, $user, $hash)
 {
     //for simpler and faster grouping, all references are push in elasticsearch to all email in group
@@ -22,6 +23,7 @@ function savemailtoes($parsedData, $user, $hash)
     curl_close($elasticReq);
 }
 
+//updates current mail's referenced e-mails by his ID
 function updateOthersRefs($refs,$user,$newid)
 {
     //find each reference and add it new ID as reference
@@ -41,6 +43,7 @@ function updateOthersRefs($refs,$user,$newid)
     curl_close($elasticReq);
 }
 
+//update current mail's references by all e-mail that reference it
 function updateOwnRefs($refs,$user,$id)
 {
     $elasticReq = curl_init();

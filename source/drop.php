@@ -1,5 +1,7 @@
 <?php
 
+//put an e-mail to user - index and store
+//parameters: username, tag and e-mail message content on stdin
 function drop($user, $tag)
 {
     $received = file_get_contents("php://stdin");

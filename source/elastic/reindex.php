@@ -1,14 +1,21 @@
 <?php
 
+//reindexes all given e-mails to ElasticSearch
+//parameter: username, array of e-mail IDs separated by "\n" on stdin
 function reindex($user)
 {
     $hasharray = explode(PHP_EOL,file_get_contents("php://stdin"));
     $results = array();
 
+    //for each e-mail ID
     foreach ($hasharray as $hash)
     {
+        //empty hashes
         if ($hash == '') continue;
-        $file_path = maildir."/".$user."/".$hash."/".$hash;
+
+        //find e-mail
+        $path = getPathFromHash($hash);
+        $file_path = maildir."/".$user."/".$path."/".$hash;
         if (file_exists($file_path) === false)
         {
             $results[] = "File ".$hash." does not exist";
@@ -18,6 +25,7 @@ function reindex($user)
         $Parser = new PhpMimeMailParser\Parser();
         $Parser->setPath($file_path);
 
+        //gets e-mail tags
         $tags = file_get_contents($file_path.'.tags');
         if ($tags === false)
             $tags = ["inbox"];

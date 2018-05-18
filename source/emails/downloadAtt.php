@@ -11,7 +11,8 @@ function download($id, $loginkey, $att)
         exit;
     $Parser = new PhpMimeMailParser\Parser();
     //save the attachment to user-email specific folder
-    $tempdir = maildir."/".$user."/".$id;
+    $path = getPathFromHash($id);
+    $tempdir = maildir."/".$user."/".$path;
     $Parser->setPath($tempdir."/".$id);
     $Parser->saveAttachments($tempdir."/", $att);
     $file = $tempdir."/".$att;

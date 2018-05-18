@@ -1,5 +1,6 @@
 <?php
 //removes email from elastic database
+//parameters: email ID and username
 function removemailes($id, $user)
 {
     $req = curl_init();
@@ -13,8 +14,6 @@ function removemailes($id, $user)
     $response = json_decode(curl_exec($req));
 
     curl_close($req);
-
-    return json_encode($response);
 }
 
 ?>

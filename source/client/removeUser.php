@@ -19,13 +19,13 @@ function removeUser($user)
 
             $db->close();
 
-            delete_directory(maildir.'/'.$username);
+            delete_directory(maildir.'/'.$user);
 
             //new index for elasticsearch
             $req = curl_init();
             
             curl_setopt_array($req, [
-                CURLOPT_URL            => "http://localhost:9200/".$username,
+                CURLOPT_URL            => "http://localhost:9200/".$user,
                 CURLOPT_CUSTOMREQUEST  => "DELETE",
                 CURLOPT_RETURNTRANSFER => true
             ]);

@@ -1,1 +1,0 @@
-find $1 -type f -print0 | while read -d $'\0' file; do php admin.php 'drop' `dirname "$file" | cut -d / -f 2` $2 < $file; done

@@ -8,7 +8,8 @@ function changetags($ids, $tag,$user,$untag)
     $i = 0;
     foreach ($ids as $id)
     {
-        $tags[$i] = json_decode(file_get_contents(maildir."/".$user."/".$id."/".$id.".tags"));
+        $path = getPathFromHash($id);
+        $tags[$i] = json_decode(file_get_contents(maildir."/".$user."/".$path."/".$id.".tags"));
 
         $key = array_search($tag, $tags[$i]);
 
@@ -25,7 +26,7 @@ function changetags($ids, $tag,$user,$untag)
             $tags[$i][] = $tag;
         }
     
-        file_put_contents(maildir."/".$user."/".$id."/".$id.".tags", json_encode($tags[$i]));
+        file_put_contents(maildir."/".$user."/".$path."/".$id.".tags", json_encode($tags[$i]));
         $i++;
     }
 

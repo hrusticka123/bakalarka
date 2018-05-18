@@ -2,6 +2,7 @@
 
 //change tags in elasticsearch
 //function only gets the new changed tags from the database and rewrites the current ones
+//parameters: list of tags, list of mail IDs and username
 function updatetags($tags,$ids,$user)
 {
     $i = 0;

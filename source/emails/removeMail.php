@@ -1,9 +1,10 @@
 <?php
 
 //hard email removal from database
-function removemail($mailid, $user)
+function removemail($hash, $user)
 {
-    $dir = maildir."/".$user."/".$mailid;
+    $path = getPathFromHash($hash);
+    $dir = maildir."/".$user."/".$path;
     $files = glob($dir."/*"); 
 
     foreach($files as $file){

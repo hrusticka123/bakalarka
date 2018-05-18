@@ -1,6 +1,6 @@
 <?php
 
-//function that recognizes if the message was sent or recieved
+//function that recognizes if the message was sent or received
 //parses the email and saves necessary parts
 function decide($received)
 {
